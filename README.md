@@ -3,6 +3,9 @@ A full-stack Gomoku platform with a self-trainable AI (MCTS/AlphaZero-style), su
 
 
 rm -rf build
+
 cmake -S . -B build
+
 cmake --build build --config Release
+
 ./build/GomokuQt6
