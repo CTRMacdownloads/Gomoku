@@ -1,5 +1,0 @@
-/Users/daixianhao/Downloads/gomoku-qt6-ready/build/CMakeFiles/GomokuQt6.dir
-/Users/daixianhao/Downloads/gomoku-qt6-ready/build/CMakeFiles/edit_cache.dir
-/Users/daixianhao/Downloads/gomoku-qt6-ready/build/CMakeFiles/rebuild_cache.dir
-/Users/daixianhao/Downloads/gomoku-qt6-ready/build/CMakeFiles/GomokuQt6_autogen_timestamp_deps.dir
-/Users/daixianhao/Downloads/gomoku-qt6-ready/build/CMakeFiles/GomokuQt6_autogen.dir
