@@ -1,5 +1,0 @@
-/Users/chris/Desktop/Gomoku/build/CMakeFiles/Gomoku.dir
-/Users/chris/Desktop/Gomoku/build/CMakeFiles/edit_cache.dir
-/Users/chris/Desktop/Gomoku/build/CMakeFiles/rebuild_cache.dir
-/Users/chris/Desktop/Gomoku/build/CMakeFiles/Gomoku_autogen_timestamp_deps.dir
-/Users/chris/Desktop/Gomoku/build/CMakeFiles/Gomoku_autogen.dir
