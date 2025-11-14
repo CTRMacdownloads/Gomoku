@@ -1,3 +1,3 @@
 # Hashes of file build rules.
-e1e3300a0f390dbde344ef94fc5e763f CMakeFiles/GomokuQt6_autogen
-3bcc92a4f833aa6d58b667f02f8396a0 GomokuQt6_autogen/timestamp
+babe910d3124c5a69ef1c2306c5a27e0 CMakeFiles/Gomoku_autogen
+73ce6d5fd68b45422c117ae602cda3a2 Gomoku_autogen/timestamp

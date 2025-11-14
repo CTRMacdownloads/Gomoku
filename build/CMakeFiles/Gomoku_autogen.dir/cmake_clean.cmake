@@ -1,0 +1,10 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/Gomoku_autogen"
+  "Gomoku_autogen/mocs_compilation.cpp"
+  "Gomoku_autogen/timestamp"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang )
+  include(CMakeFiles/Gomoku_autogen.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

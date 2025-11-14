@@ -1,2 +1,2 @@
-set(__QT_DEPLOY_TARGET_GomokuQt6_FILE /Users/daixianhao/Downloads/gomoku-qt6-ready/build/GomokuQt6)
-set(__QT_DEPLOY_TARGET_GomokuQt6_TYPE EXECUTABLE)
+set(__QT_DEPLOY_TARGET_Gomoku_FILE /Users/chris/Desktop/Gomoku/build/Gomoku)
+set(__QT_DEPLOY_TARGET_Gomoku_TYPE EXECUTABLE)
