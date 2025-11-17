@@ -2,12 +2,14 @@ import sys, json, time, math, random
 from collections import defaultdict
 
 EMPTY, BLACK, WHITE = 0, 1, 2
+ZOBRIST = None
+TTEntry = defaultdict(lambda: None)
+TT_EXACT, TT_LOWER, TT_UPPER = 0, 1, 2
 
 def _zobrist_init(N):
     rnd = random.Random(2025)
     table = [[[rnd.getrandbits(64) for _ in range(3)] for _ in range(N)] for _ in range(N)]
     return table
-ZOBRIST = None
 
 def zobrist_hash(board):
     h = 0
@@ -19,97 +21,108 @@ def zobrist_hash(board):
                 h ^= ZOBRIST[r][c][v]
     return h
 
-def inb(N,r,c): return 0 <= r < N and 0 <= c < N
+# ---------------- Imminent Move ----------------
+def inBoard(N, r, c):
+    return 0 <= r < N and 0 <= c < N
 
-DIRS = [(0,1),(1,0),(1,1),(1,-1)]
+DIRECTIONS = [
+    (0, 1),
+    (1, 0),
+    (1, 1),
+    (1, -1)
+]
 
-def five_in_a_row(board, r, c, who):
+def legal_moves(board, radius = 2):
     N = len(board)
-    for dr,dc in DIRS:
+    stones = [(r, c) for r in range(N) for c in range(N) if board[r][c] != EMPTY]
+    if not stones:
+        return [(N // 2, N // 2)]
+    candidates = set()
+    for r0, c0 in stones:
+        for dr in range(-radius, radius + 1):
+            for dc in range(-radius, radius + 1):
+                r,c = r0 + dr, c0 + dc
+                if inBoard(N, r, c) and board[r][c] == EMPTY:
+                    candidates.add((r, c))
+    return list(candidates)
+
+def win(board, r, c, player):
+    N = len(board)
+    for dr, dc in DIRECTIONS:
         cnt = 1
-        rr,cc = r+dr,c+dc
-        while inb(N,rr,cc) and board[rr][cc]==who:
-            cnt+=1; rr+=dr; cc+=dc
-        rr,cc = r-dr,c-dc
-        while inb(N,rr,cc) and board[rr][cc]==who:
-            cnt+=1; rr-=dr; cc-=dc
-        if cnt >= 5: return True
+        rr, cc = r + dr,c + dc
+        while inBoard(N, rr, cc) and board[rr][cc] == player:
+            cnt += 1
+            rr += dr
+            cc += dc
+        rr, cc = r - dr, c - dc
+        while inBoard(N, rr, cc) and board[rr][cc] == player:
+            cnt += 1
+            rr -= dr
+            cc -= dc
+        if cnt >= 5:
+            return True
     return False
 
-def legal_moves(board, radius=2):
+def live_four(board, r, c, player):
     N = len(board)
-    stones = [(r,c) for r in range(N) for c in range(N) if board[r][c]!=EMPTY]
-    if not stones:
-        m=N//2
-        cand = [(m,m)]
-        if N>=7:
-            cand += [(m-1,m),(m,m-1),(m+1,m),(m,m+1)]
-        return cand
-    seen=set()
-    for r0,c0 in stones:
-        for dr in range(-radius, radius+1):
-            for dc in range(-radius, radius+1):
-                r,c = r0+dr, c0+dc
-                if inb(N,r,c) and board[r][c]==EMPTY:
-                    seen.add((r,c))
-    return list(seen)
+    for dr, dc in DIRECTIONS:
+        cnt = 1
+        rr, cc = r + dr,c + dc
+        while inBoard(N, rr, cc) and board[rr][cc] == player:
+            cnt += 1
+            rr += dr
+            cc += dc
+        open1 = inBoard(N, rr, cc) and board[rr][cc] == EMPTY
+        rr, cc = r - dr, c - dc
+        while inBoard(N, rr, cc) and board[rr][cc] == player:
+            cnt += 1
+            rr -= dr
+            cc -= dc
+        open2 = inBoard(N, rr, cc) and board[rr][cc] == EMPTY
+        if cnt == 4 and open1 and open2:
+            return True
+    return False
 
-def all_lines_with_coords(board):
+def rush_four(board, r, c, player):
     N = len(board)
-    for r in range(N):
-        yield board[r][:], [(r,c) for c in range(N)]
-    for c in range(N):
-        col = [board[r][c] for r in range(N)]
-        yield col, [(r,c) for r in range(N)]
-    for s in range(-(N-1), N):
-        vals, coords = [], []
-        for r in range(N):
-            c = r - s
-            if 0 <= c < N:
-                vals.append(board[r][c]); coords.append((r,c))
-        if len(vals) >= 5: yield vals, coords
-    for s in range(0, 2*N-1):
-        vals, coords = [], []
-        for r in range(N):
-            c = s - r
-            if 0 <= c < N:
-                vals.append(board[r][c]); coords.append((r,c))
-        if len(vals) >= 5: yield vals, coords
+    for dr, dc in DIRECTIONS:
+        cnt = 1
+        rr, cc = r + dr,c + dc
+        while inBoard(N, rr, cc) and board[rr][cc] == player:
+            cnt += 1
+            rr += dr
+            cc += dc
+        open1 = inBoard(N, rr, cc) and board[rr][cc] == EMPTY
+        rr, cc = r - dr, c - dc
+        while inBoard(N, rr, cc) and board[rr][cc] == player:
+            cnt += 1
+            rr -= dr
+            cc -= dc
+        open2 = inBoard(N, rr, cc) and board[rr][cc] == EMPTY
+        if cnt == 4 and (open1 ^ open2):
+            return True
+    return False
 
-def can_win_points(board, who):
-    res=[]
-    for (r,c) in legal_moves(board):
-        board[r][c]=who
-        if five_in_a_row(board,r,c,who):
-            res.append((r,c))
-        board[r][c]=EMPTY
+def threat_for_direct_win(board, player):
+    res = []
+    for (r, c) in legal_moves(board, 1):
+        board[r][c] = player
+        if win(board, r, c, player):
+            res.append((r, c))
+        board[r][c] = EMPTY
     return res
 
-def blocking_cells_for_open_fours(board, who):
-    return can_win_points(board, who)
-
-def blocking_cells_for_open_threes(board, who):
-    blocks=set()
-    for vals, coords in all_lines_with_coords(board):
-        n=len(vals); i=0
-        while i<=n-5:
-            win = vals[i:i+5]
-            if (win[0]==EMPTY and win[1]==who and win[2]==who and win[3]==who and win[4]==EMPTY):
-                blocks.add(coords[i]); blocks.add(coords[i+4])
-            i+=1
-    return list(blocks)
-
-def is_strong_threat_after(board, r, c, who):
-    board[r][c]=who
-    wins = can_win_points(board, who)
-    if wins:
-        board[r][c]=EMPTY; return True
-    o3 = blocking_cells_for_open_threes(board, who)
-    board[r][c]=EMPTY
-    return len(o3) >= 3
+def threat_for_live_four(board, player):
+    res = []
+    for (r, c) in legal_moves(board, 1):
+        board[r][c] = player
+        if live_four(board, r, c, player):
+            res.append((r, c))
+        board[r][c] = EMPTY
+    return res
 
 # ---------------- Heuristic ----------------
-# 模式分（可按口味调整）
 SCORES = {
     "FIVE":     1000000,
     "OPEN4":     50000,
@@ -120,81 +133,114 @@ SCORES = {
     "SLEEP2":        40,
 }
 
-def line_score(vals, who):
-    opp = BLACK if who==WHITE else WHITE
-    n=len(vals); s=0
+def heuristic(board, player):
+    player_score = opp_score = 0
+    opp = BLACK if player==WHITE else WHITE
+    for vals in all_lines(board):
+        player_score += line_score(vals, player)
+        opp_score += line_score(vals, opp)
+    return player_score - opp_score
 
-    # 快速五连
-    cnt=0
+def all_lines(board):
+    N = len(board)
+    lines = []
+
+    # rows
+    for r in range(N):
+        lines.append((board[r][:]))
+
+    # columns
+    for c in range(N):
+        lines.append([board[r][c] for r in range(N)])
+
+    # main diagonals:
+    for s in range(-(N - 1), N):
+        vals, coords = [], []
+        for r in range(N):
+            c = r - s
+            if 0 <= c < N:
+                vals.append(board[r][c])
+        if len(vals) >= 5:
+            lines.append(vals)
+
+    # anti-diagonals:
+    for s in range(0, 2 * N - 1):
+        vals, coords = [], []
+        for r in range(N):
+            c = s - r
+            if 0 <= c < N:
+                vals.append(board[r][c])
+        if len(vals) >= 5:
+            lines.append((vals, coords))
+
+    return lines
+
+def line_score(vals, player):
+    opp = BLACK if player == WHITE else WHITE
+    n = len(vals)
+    s = 0
+    cnt = 0
     for x in vals:
-        cnt = cnt+1 if x==who else 0
-        if cnt>=5: s += SCORES["FIVE"]
+        cnt = cnt + 1 if x == player else 0
+        if cnt >= 5:
+            s += SCORES["FIVE"]
 
     def window(k):
-        for i in range(n-k+1):
-            yield i, vals[i:i+k]
+        for i in range(n - k + 1):
+            yield i, vals[i : i + k]
 
-    for i,w in window(5):
-        if w.count(who)==4 and w.count(EMPTY)==1:
+    for i, w in window(5):
+        if w.count(player) == 4 and w.count(EMPTY) == 1:
             s += SCORES["CLOSED4"]
-            if w[0]==EMPTY and w[-1]==EMPTY:
-                s += (SCORES["OPEN4"] - SCORES["CLOSED4"])
-
-    for i,w in window(6):
-        if w.count(who)==3 and w.count(EMPTY)==3:
-            if w.count(opp)==0:
+            if w[0] == EMPTY and w[-1] == EMPTY:
+                s += SCORES["OPEN4"] - SCORES["CLOSED4"]
+    for i, w in window(6):
+        if w.count(player) == 3 and w.count(EMPTY) == 3:
+            if w.count(opp) == 0:
                 s += SCORES["OPEN3"]
-    for i,w in window(5):
-        if w.count(who)==2 and w.count(EMPTY)==3 and w.count(opp)==0:
+    for i, w in window(5):
+        if w.count(player) == 2 and w.count(EMPTY) == 3 and w.count(opp) == 0:
             s += SCORES["OPEN2"]
     return s
 
-def heuristic(board, who):
-    me = opp = 0
-    OPP = BLACK if who==WHITE else WHITE
-    for vals,_ in all_lines_with_coords(board):
-        me  += line_score(vals, who)
-        opp += line_score(vals, OPP)
-    return me - opp
+def ordered_moves(board, moves, player):
+    if not moves:
+        return []
+    opp = BLACK if player == WHITE else WHITE
 
-TTEntry = defaultdict(lambda: None)
-TT_EXACT, TT_LOWER, TT_UPPER = 0, 1, 2
-
-def order_moves(board, moves, who):
-    if not moves: return moves
-    N=len(board); OPP = BLACK if who==WHITE else WHITE
-
-    wins=set(can_win_points(board, who))
-    must_block=set(can_win_points(board, OPP))
-    o4 = set(blocking_cells_for_open_fours(board, who))
-    o3 = set(blocking_cells_for_open_threes(board, who))
-
-    def center_bias(r,c):
-        return -((r - N/2)**2 + (c - N/2)**2)
+    # Chances for Direct Win
+    wins = threat_for_direct_win(board, player)
+    # Opponent with 1-step Winning Opportunity
+    must_block = threat_for_direct_win(board, opp)
+    # Own 1-step Threats For LIVE-FOUR
+    own_live_four = threat_for_live_four(board, player)
+    # Opponent 1-step Threats For LIVE-FOUR
+    opp_live_four = threat_for_live_four(board, opp)
 
     def density(r,c):
-        d=0
-        for dr in (-2,-1,0,1,2):
-            for dc in (-2,-1,0,1,2):
-                rr,cc=r+dr,c+dc
-                if inb(N,rr,cc) and board[rr][cc]!=EMPTY: d+=1
+        d = 0
+        for dr in range(-2, 3):
+            for dc in range(-2, 3):
+                rr, cc = r + dr, c + dc
+                if inBoard(len(board), rr, cc) and board[rr][cc] != EMPTY:
+                    d += 4 - abs(dr) - abs(dc)
         return d
 
     def key(m):
-        r,c=m
+        r, c = m
         score_tuple = (
             5 if m in wins else
             4 if m in must_block else
-            3 if m in o4 else
-            2 if m in o3 else
+            3 if m in own_live_four else
+            2 if m in opp_live_four else
             1
         )
-        return (score_tuple, density(r,c), center_bias(r,c))
+        return (score_tuple, density(r,c))
 
-    return sorted(moves, key=key, reverse=True)
+    return sorted(moves, key = key, reverse = True)
 
-def minimax(board, depth, alpha, beta, who, me, t_end, tt_on=True, q_extend=True):
-    now=time.time()
+def minimax(board, depth, alpha, beta, current_player, player, t_end, tt_on = True):
+    now = time.time()
     if now >= t_end:
         raise TimeoutError
 
@@ -209,39 +255,24 @@ def minimax(board, depth, alpha, beta, who, me, t_end, tt_on=True, q_extend=True
             if alpha >= beta: return sval, sbest
 
     if depth == 0:
-        val = heuristic(board, me)
+        val = heuristic(board, player)
         return val, None
 
-    N=len(board); OPP = BLACK if who==WHITE else WHITE
+    opp = BLACK if current_player == WHITE else WHITE
 
-    wins = can_win_points(board, who)
-    if wins:
-        return 900000 + depth, wins[0]
+    moves = legal_moves(board, 2)
+    moves = ordered_moves(board, moves, current_player)
 
-    must_block = can_win_points(board, OPP)
-    if must_block:
-        moves = must_block
-    else:
-        moves = legal_moves(board, radius=2)
-        moves = order_moves(board, moves, who)
-
-    if q_extend and depth==1:
-        ext=[]
-        for (r,c) in moves[:20]:
-            if is_strong_threat_after(board, r, c, who):
-                ext.append((r,c))
-        if ext:
-            moves = ext + moves
-
-    best_move=None
-    if who == me:
+    best_move = None
+    if current_player == player:
         v = -math.inf
         for (r,c) in moves:
-            board[r][c]=who
-            score,_ = minimax(board, depth-1, alpha, beta, OPP, me, t_end, tt_on, q_extend)
-            board[r][c]=EMPTY
+            board[r][c] = current_player
+            score, _ = minimax(board, depth - 1, alpha, beta, opp, player, t_end, tt_on)
+            board[r][c] = EMPTY
             if score > v:
-                v = score; best_move=(r,c)
+                v = score
+                best_move = (r, c)
             alpha = max(alpha, v)
             if alpha >= beta:
                 break
@@ -249,8 +280,8 @@ def minimax(board, depth, alpha, beta, who, me, t_end, tt_on=True, q_extend=True
     else:
         v = math.inf
         for (r,c) in moves:
-            board[r][c]=who
-            score,_ = minimax(board, depth-1, alpha, beta, OPP, me, t_end, tt_on, q_extend)
+            board[r][c]=current_player
+            score,_ = minimax(board, depth - 1, alpha, beta, opp, player, t_end, tt_on)
             board[r][c]=EMPTY
             if score < v:
                 v = score; best_move=(r,c)
@@ -263,63 +294,46 @@ def minimax(board, depth, alpha, beta, who, me, t_end, tt_on=True, q_extend=True
         TTEntry[h] = (depth, v, flag, best_move)
     return v, best_move
 
-def opponent_threat_cells(board, opp):
-    N = len(board)
-    cells = []
-    for r in range(N):
-        for c in range(N):
-            if board[r][c] != 0:
-                continue
-            board[r][c] = opp
-            wins = can_win_points(board, opp)
-            board[r][c] = 0
-            if wins:
-                cells.append((r, c))
-    return cells
-
-def pick_best_block(board, who, blocks):
-    best, best_score = None, -10**18
-    for (r,c) in blocks:
-        if board[r][c] != 0:
-            continue
-        board[r][c] = who
-        sc = heuristic(board, who)
-        board[r][c] = 0
-        if sc > best_score:
-            best_score, best = sc, (r, c)
-    return best
-
-def find_best_move(board, who, time_limit_ms=800, max_depth=6):
-    start = time.time()
-    t_end = start + time_limit_ms/1000.0
-    best = None
-
-    wins = can_win_points(board, who)
+def find_best_move(board, player, time_limit_ms = 1000, max_depth = 10):
+    # Chances for Direct Win
+    wins = threat_for_direct_win(board, player)
     if wins:
         return wins[0]
 
-    opp = BLACK if who==WHITE else WHITE
-    must_block = can_win_points(board, opp)
+    opp = BLACK if player == WHITE else WHITE
+
+    # Opponent with 1-step Winning Opportunity
+    must_block = threat_for_direct_win(board, opp)
     if must_block:
         return must_block[0]
 
-    threat_blocks = opponent_threat_cells(board, opp)
-    if threat_blocks:
-        pick = pick_best_block(board, who, threat_blocks)
-        if pick:
-            return pick
+    # Own 1-step Threats For LIVE-FOUR
+    own_live_four = threat_for_live_four(board, player)
+    if own_live_four:
+        return own_live_four[0]
 
-    for depth in range(2, max_depth+1, 2):
+    # Opponent 1-step Threats For LIVE-FOUR
+    opp_live_four = threat_for_live_four(board, opp)
+    if opp_live_four:
+        return opp_live_four[0]
+
+    # A* search
+    start = time.time()
+    t_end = start + time_limit_ms / 1000.0
+    best = None
+    for depth in range(2, max_depth + 1, 2):
         try:
-            val, move = minimax(board, depth, -math.inf, math.inf, who, who, t_end, tt_on=True, q_extend=True)
+            val, move = minimax(board, depth, -math.inf, math.inf, player, player, t_end)
             if move is not None:
                 best = move
         except TimeoutError:
             break
-
     if best is None:
-        moves = order_moves(board, legal_moves(board), who)
-        best = moves[0] if moves else (0,0)
+        moves = ordered_moves(board, legal_moves(board), player)
+        if moves:
+            best = moves
+        else:
+            raise RuntimeError("Last resort for best move failed")
     return best
 
 def main_loop():
@@ -329,19 +343,18 @@ def main_loop():
         if not s: continue
         try:
             req = json.loads(s)
-            board = req["board"];
-            player=req.get("player","white")
-            N = len(board)
-            if ZOBRIST is None or len(ZOBRIST)!=N:
-                globals()["ZOBRIST"] = _zobrist_init(N)
+            board = req["board"]
+            player = req.get("player", "white")
+            if ZOBRIST is None or len(ZOBRIST) != len(board):
+                globals()["ZOBRIST"] = _zobrist_init(len(board))
                 TTEntry.clear()
-            who = WHITE if player=="white" else BLACK
-            r,c = find_best_move(board, who, time_limit_ms=5000, max_depth=20)
-            sys.stdout.write(json.dumps({"row":int(r),"col":int(c)})+"\n")
+            player = WHITE if player == "white" else BLACK
+            r, c = find_best_move(board, player, 5000, 20)
+            sys.stdout.write(json.dumps({"row": int(r), "col": int(c)}) + "\n")
             sys.stdout.flush()
         except Exception as e:
-            sys.stdout.write(json.dumps({"row":-1,"col":-1,"error":str(e)})+"\n")
-            sys.stdout.flush()
+            sys.stderr.write(json.dumps({"row": -1, "col": -1, "error": str(e)}) + "\n")
+            sys.stderr.flush()
 
 if __name__=="__main__":
     main_loop()

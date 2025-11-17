@@ -3,9 +3,9 @@
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
-  <component name="CMakePresetLoader"><![CDATA[{
-  "useNewFormat": true
-}]]></component>
+  <component name="CMakePresetLoader">{
+  &quot;useNewFormat&quot;: true
+}</component>
   <component name="CMakeProjectFlavorService">
     <option name="flavorId" value="CMakePlainProjectFlavor" />
   </component>
@@ -14,7 +14,7 @@
   </component>
   <component name="CMakeRunConfigurationManager">
     <generated>
-      <config projectName="GomokuQt6" targetName="GomokuQt6" />
+      <config projectName="Gomoku" targetName="Gomoku" />
     </generated>
   </component>
   <component name="CMakeSettings">
@@ -24,47 +24,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3463e6c5-338a-4a25-a8aa-46d2b8f0897e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/build/.qt/QtDeploySupport.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/build/.qt/QtDeploySupport.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/.qt/QtDeployTargets.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/build/.qt/QtDeployTargets.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeCache.txt" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeCache.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/4.0.3/CMakeDetermineCompilerABI_CXX.bin" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/4.0.3/CMakeDetermineCompilerABI_CXX.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/CMakeConfigureLog.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/CMakeConfigureLog.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/CMakeDirectoryInformation.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/CMakeDirectoryInformation.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/CMakeRuleHashes.txt" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/CMakeRuleHashes.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/DependInfo.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/DependInfo.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/GomokuQt6_autogen/mocs_compilation.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/GomokuQt6_autogen/mocs_compilation.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/GomokuQt6_autogen/mocs_compilation.cpp.o.d" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/GomokuQt6_autogen/mocs_compilation.cpp.o.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/build.make" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/build.make" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/compiler_depend.internal" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/compiler_depend.internal" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/compiler_depend.make" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/compiler_depend.make" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/flags.make" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/flags.make" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/aiclient.cpp.o.d" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/aiclient.cpp.o.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/boardwidget.cpp.o.d" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/boardwidget.cpp.o.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/gamecontroller.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/gamecontroller.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/gamecontroller.cpp.o.d" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/gamecontroller.cpp.o.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/gamemodel.cpp.o.d" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/gamemodel.cpp.o.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/main.cpp.o.d" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/main.cpp.o.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/mainwindow.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/mainwindow.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/mainwindow.cpp.o.d" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/mainwindow.cpp.o.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/python_ai_process.cpp.o.d" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6.dir/src/python_ai_process.cpp.o.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6_autogen.dir/AutogenInfo.json" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6_autogen.dir/AutogenInfo.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6_autogen.dir/ParseCache.txt" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6_autogen.dir/ParseCache.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6_autogen.dir/build.make" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6_autogen.dir/build.make" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6_autogen_timestamp_deps.dir/build.make" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/GomokuQt6_autogen_timestamp_deps.dir/build.make" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/InstallScripts.json" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/InstallScripts.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/Makefile.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/Makefile.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/Makefile2" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/Makefile2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/TargetDirectories.txt" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/TargetDirectories.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/GomokuQt6" beforeDir="false" afterPath="$PROJECT_DIR$/build/GomokuQt6" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/GomokuQt6_autogen/UVLADIE3JM/moc_aiclient.cpp.d" beforeDir="false" afterPath="$PROJECT_DIR$/build/GomokuQt6_autogen/UVLADIE3JM/moc_aiclient.cpp.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/GomokuQt6_autogen/UVLADIE3JM/moc_boardwidget.cpp.d" beforeDir="false" afterPath="$PROJECT_DIR$/build/GomokuQt6_autogen/UVLADIE3JM/moc_boardwidget.cpp.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/GomokuQt6_autogen/UVLADIE3JM/moc_gamecontroller.cpp.d" beforeDir="false" afterPath="$PROJECT_DIR$/build/GomokuQt6_autogen/UVLADIE3JM/moc_gamecontroller.cpp.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/GomokuQt6_autogen/UVLADIE3JM/moc_mainwindow.cpp.d" beforeDir="false" afterPath="$PROJECT_DIR$/build/GomokuQt6_autogen/UVLADIE3JM/moc_mainwindow.cpp.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/GomokuQt6_autogen/UVLADIE3JM/moc_python_ai_process.cpp.d" beforeDir="false" afterPath="$PROJECT_DIR$/build/GomokuQt6_autogen/UVLADIE3JM/moc_python_ai_process.cpp.d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/GomokuQt6_autogen/deps" beforeDir="false" afterPath="$PROJECT_DIR$/build/GomokuQt6_autogen/deps" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/build/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/ai_stdin.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/ai_stdin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/cmake_install.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/build/cmake_install.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,57 +38,52 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Xianhao-Dai"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Xianhao-Dai&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/CTRMacdownloads/Gomoku.git",
-    "accountId": "964a01dc-291b-4236-af1e-2a2cf91fc312"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/CTRMacdownloads/Gomoku.git&quot;,
+    &quot;accountId&quot;: &quot;964a01dc-291b-4236-af1e-2a2cf91fc312&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectApplicationVersion">
     <option name="ide" value="CLion" />
     <option name="majorVersion" value="2025" />
     <option name="minorVersion" value="2.1" />
     <option name="productBranch" value="Classic" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 1
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
   <component name="ProjectId" id="35ccxK2yKi9RQZI87rzB1MlUuPZ" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.RadMigrateCodeStyle": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "RunOnceActivity.west.config.association.type.startup.service": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "Rebasing main",
-    "last_opened_file_path": "/Users/daixianhao/Desktop/Gomoku",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.RadMigrateCodeStyle&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.west.config.association.type.startup.service&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Rebasing main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/daixianhao/Desktop/Gomoku&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="Gomoku" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gomoku" TARGET_NAME="Gomoku" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Gomoku" RUN_TARGET_NAME="Gomoku">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -141,11 +96,17 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1763413045740</updated>
-      <workItem from="1763413047324" duration="144000" />
+      <workItem from="1763413047324" duration="272000" />
+      <workItem from="1763413359761" duration="7000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VCPKGProject">
+    <isAutomaticCheckingOnLaunch value="false" />
+    <isAutomaticFoundErrors value="true" />
+    <isAutomaticReloadCMake value="true" />
   </component>
 </project>
