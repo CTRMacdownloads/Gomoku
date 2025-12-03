@@ -1,0 +1,382 @@
+好，那我们就认真搞一套 **方案 B 实施指南**，直接围绕你们现在的 `ai_stdin.py` 这一版来讲，不再扯方案 A 了。🧠
+
+> 目标：
+> **对局时完全不走 A* / minimax，改成：Python 里一个 RL 策略网络直接给出落子位置 `(r, c)`。**
+> C++ / Qt 一律不动，只改 Python。
+
+我分三块讲：
+
+1. 工程层面：`ai_stdin.py` 里具体改哪些代码
+2. 模型接入：如何在 `ai_stdin.py` 里调用 RL 模型出招
+3. 训练侧：怎么用现有 A* 生成数据 + 训练一个能用的策略网络
+
+---
+
+## 一、工程改造：先把“出招入口”从 A* 换成 RL
+
+先看你现在 `ai_stdin.py` 的结尾（你刚才那份）：
+
+```python
+def find_best_move(board, who, time_limit_ms=800, max_depth=6):
+    ...
+    return best
+
+def main_loop():
+    global ZOBRIST
+    for line in sys.stdin:
+        s = line.strip()
+        if not s: continue
+        try:
+            req = json.loads(s)
+            board = req["board"];
+            player=req.get("player","white")
+            N = len(board)
+            if ZOBRIST is None or len(ZOBRIST)!=N:
+                globals()["ZOBRIST"] = _zobrist_init(N)
+                TTEntry.clear()
+            who = WHITE if player=="white" else BLACK
+            r,c = find_best_move(board, who, time_limit_ms=5000, max_depth=20)
+            sys.stdout.write(json.dumps({"row":int(r),"col":int(c)})+"\n")
+            sys.stdout.flush()
+        except Exception as e:
+            sys.stdout.write(json.dumps({"row":-1,"col":-1,"error":str(e)})+"\n")
+            sys.stdout.flush()
+
+if __name__=="__main__":
+    main_loop()
+```
+
+👉 **关键点就是这一行：**
+
+```python
+r,c = find_best_move(board, who, time_limit_ms=5000, max_depth=20)
+```
+
+方案 B 要做的事就是：
+
+> 新建一个 `choose_move_with_rl(board, who)`，
+> 然后把这里的 `find_best_move(...)` 换成 `choose_move_with_rl(...)`（外加一个兜底）。
+
+### 步骤 1：先写一个“假 RL 函数”测试工程
+
+先别急着上神经网络，先确保“接口”没问题。
+在 `ai_stdin.py` 里、`find_best_move` 上面加一个简单函数：
+
+```python
+def choose_move_with_rl(board, who):
+    """
+    先用随机合法落子占位，确保整条调用链是通的，
+    后面再把内部逻辑换成真正的 RL 模型。
+    """
+    # 复用你现有的合法棋步生成函数
+    moves = legal_moves(board, radius=2)
+    if not moves:
+        return (0, 0)
+    # 这里先随机选一个
+    return random.choice(moves)
+```
+
+> 这里的 `legal_moves` 函数在你文件里已经有了，我刚看了一眼：
+> 会基于已有棋子附近 radius=2 的范围生成候选点，非常合适。
+
+### 步骤 2：在 `main_loop` 改成优先走 RL
+
+把原来的：
+
+```python
+who = WHITE if player=="white" else BLACK
+r,c = find_best_move(board, who, time_limit_ms=5000, max_depth=20)
+```
+
+改成下面这样：
+
+```python
+who = WHITE if player=="white" else BLACK
+
+try:
+    # 方案 B：纯 RL 出招（现在先是占位的随机版）
+    r, c = choose_move_with_rl(board, who)
+except Exception as e:
+    # 如果 RL 这边出 bug，兜底用原来的 A* / minimax
+    r, c = find_best_move(board, who, time_limit_ms=5000, max_depth=20)
+```
+
+这样改完之后：
+
+* 从 C++ / Qt 的角度看：**没任何变化**，还是收到一个 `(row, col)`。
+* 但现在每一步棋实际上是 `choose_move_with_rl` 决定的（先随机），
+  等你把 RL 模型接上去，就会变成“策略网络出招”。
+
+到这里为止，**方案 B 的“接线工作”就完成 50% 了**。
+接下来只要把 `choose_move_with_rl` 的内部，从“随机”换成“模型推理”即可。
+
+---
+
+## 二、在 `ai_stdin.py` 里接入 RL 模型（推理阶段）
+
+下面我用 **PyTorch** 来举例（主流 + 好写）。其它框架也类似。
+
+### 步骤 3：定义一个策略网络结构 PolicyNet
+
+在文件顶部的 import 后面加上：
+
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+```
+
+然后定义一个简单的卷积网络（示例，仅作参考，你训练时网络结构要一致）：
+
+```python
+class PolicyNet(nn.Module):
+    def __init__(self, N):
+        super().__init__()
+        self.N = N
+        # 输入通道数 = 2（我方 / 对方）
+        self.conv1 = nn.Conv2d(2, 32, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.conv3 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
+        # 输出 1 个通道的 "logits map"
+        self.head  = nn.Conv2d(64, 1, kernel_size=1)
+
+    def forward(self, x):
+        # x: (B, 2, N, N)
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = self.head(x)  # (B,1,N,N)
+        return x.squeeze(1)  # -> (B,N,N)
+```
+
+> 注意：训练脚本里必须用**同样的结构**，不然加载参数会失败。
+
+### 步骤 4：写一个全局的模型加载函数
+
+仍然在 `ai_stdin.py` 中，靠上位置：
+
+```python
+POLICY_MODEL = None
+
+def load_policy_model(N):
+    """
+    懒加载策略网络，只初始化和加载一次权重。
+    """
+    global POLICY_MODEL
+    if POLICY_MODEL is None:
+        model = PolicyNet(N)
+        state = torch.load("gomoku_policy.pt", map_location="cpu")
+        model.load_state_dict(state)
+        model.eval()
+        POLICY_MODEL = model
+    return POLICY_MODEL
+```
+
+> `gomoku_policy.pt` 就是你训练完保存的模型权重文件，
+> 放在和 `ai_stdin.py` 同目录即可。
+
+### 步骤 5：把棋盘编码成神经网络输入
+
+在同一文件里再加一个帮助函数：
+
+```python
+def board_to_tensor(board, who):
+    """
+    把当前局面编码为 (1, 2, N, N) 的 float32 tensor：
+    通道 0：我方棋子；通道 1：对方棋子
+    """
+    N = len(board)
+    me_plane  = [[0.0]*N for _ in range(N)]
+    opp_plane = [[0.0]*N for _ in range(N)]
+    OPP = BLACK if who == WHITE else WHITE
+
+    for r in range(N):
+        for c in range(N):
+            v = board[r][c]
+            if v == who:
+                me_plane[r][c] = 1.0
+            elif v == OPP:
+                opp_plane[r][c] = 1.0
+
+    x = torch.tensor([[me_plane, opp_plane]], dtype=torch.float32)  # (1,2,N,N)
+    return x
+```
+
+### 步骤 6：真正的 RL 选点逻辑：替换 `choose_move_with_rl` 内部
+
+现在把之前的“随机版”改成调用模型：
+
+```python
+def choose_move_with_rl(board, who):
+    """
+    方案 B 真正的核心：用策略网络直接选择一个空位落子。
+    """
+    N = len(board)
+    model = load_policy_model(N)
+    x = board_to_tensor(board, who)
+
+    with torch.no_grad():
+        logits = model(x)[0]   # shape: (N, N)
+
+    # 对已有棋子的位置打上 -inf，从而屏蔽掉非法动作
+    for r in range(N):
+        for c in range(N):
+            if board[r][c] != EMPTY:
+                logits[r, c] = -1e9
+
+    # 方案一：直接 argmax，选概率最大的那个位置
+    flat = logits.view(-1)
+    idx = int(torch.argmax(flat).item())
+    r = idx // N
+    c = idx % N
+
+    #（可选）如果你想引入一点随机性，可以对 logits 做 softmax 后采样
+    return (r, c)
+```
+
+此时，主逻辑就是：
+
+* 对局时 C++ 把局面传进来；
+* `main_loop` 调用 `choose_move_with_rl -> 模型前向推理 -> 返回 (r,c)`；
+* 完成方案 B 里的 “RL 直接出招”。
+
+---
+
+## 三、训练：怎么用现有 A* 生成数据，搞出可以用的策略网络
+
+你问的是“如何实施方案 B”，训练过程也是实施的一部分，我给你一个 **可交作业、现实可行** 的路径，而不是 AlphaZero 那种要打几十万盘：
+
+### 思路：先行为克隆（模仿现有 A*），再有余力可以加一点自博弈
+
+**步骤 7：写一个 `generate_data.py`，用现有 A* AI 自动对弈**
+
+目标：生成一堆 `(state, action)` 样本，用来训练 PolicyNet。
+
+伪代码结构大概是这样（不必现在就写，只要知道流程）：
+
+```python
+from copy import deepcopy
+# 你可以复用 ai_stdin.py 里的：heuristic, minimax, find_best_move, legal_moves, is_win 等
+
+def self_play_one_game(N=15):
+    board = [[EMPTY]*N for _ in range(N)]
+    who = BLACK
+    history = []  # [(state_board_copy, action_rc, player), ...]
+
+    while True:
+        # 1. 复制当前局面
+        state = deepcopy(board)
+
+        # 2. 用现有的 find_best_move 当“老师”
+        r, c = find_best_move(board, who, time_limit_ms=800, max_depth=6)
+
+        # 3. 记录样本
+        history.append((state, (r, c), who))
+
+        # 4. 落子
+        board[r][c] = who
+
+        # 5. 判断胜负/结束
+        if is_win(board, r, c, who):  # 你现有文件里肯定有胜负判断
+            return history, who   # 返回对局历史和赢家
+
+        # 6. 换手
+        who = WHITE if who == BLACK else BLACK
+
+def generate_dataset(num_games=200):
+    data = []
+    for _ in range(num_games):
+        hist, winner = self_play_one_game()
+        data.extend(hist)
+    # 把 data 存到磁盘，比如用 pickle / npz / json
+```
+
+这样跑个几百盘，就有几千～上万步 `(state, action)` 样本，完全够一个课程项目用。
+
+### 步骤 8：写 `train_policy.py`，训练 PolicyNet
+
+核心就是行为克隆（Behavior Cloning）：
+
+* 输入：`state`（棋盘）
+* 目标输出：老师 A* 给出的那个 `(r, c)` 动作
+
+伪代码结构大概是：
+
+```python
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+
+class GomokuDataset(Dataset):
+    def __init__(self, samples):
+        self.samples = samples  # list of (board, (r,c), who)
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        board, (r, c), who = self.samples[idx]
+        N = len(board)
+        x = board_to_tensor(board, who)  # (1,2,N,N)
+        y = r * N + c                    # 把 (r,c) 展平成一个 index
+        return x[0], y                   # x: (2,N,N)
+
+# 训练
+model = PolicyNet(N)
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
+criterion = nn.CrossEntropyLoss()
+
+for epoch in range(num_epochs):
+    for xb, yb in loader:  # xb: (B,2,N,N), yb: (B,)
+        logits = model(xb)           # (B,N,N)
+        logits = logits.view(-1, N*N)  # (B, N*N)
+        loss = criterion(logits, yb)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+# 训练结束后，保存
+torch.save(model.state_dict(), "gomoku_policy.pt")
+```
+
+> 然后这个 `gomoku_policy.pt` 就是你在 `ai_stdin.py` 里 `load_policy_model` 需要加载的文件。
+
+### 步骤 9：接回对局 & 对比原 A*
+
+训练完以后，把模型文件放到和 `ai_stdin.py` 同目录：
+
+* 启动你们的 Qt 程序；
+* 人机对战，就已经是“RL/模仿 A*” 的 AI 在下棋；
+* 你还可以写一个小脚本，让“原 A*” 和 “RL 策略网络” 对战几盘，看看谁更强。
+
+---
+
+## 四、最后帮你整理一份“实施 checklist”
+
+**在 `ai_stdin.py` 里要做的事：**
+
+1. ✅ 新增 `PolicyNet`、`load_policy_model`、`board_to_tensor`、`choose_move_with_rl` 四块代码。
+2. ✅ 在 `main_loop` 里，用 `choose_move_with_rl` 替换掉直接调用 `find_best_move` 的地方（保留 A* 当兜底）。
+3. ✅ 确保 `gomoku_policy.pt` 放到正确目录，推理不报错。
+
+**在训练脚本那边要做的事（单独 py 文件）：**
+
+1. ✅ 用现在的 `find_best_move`（A* / minimax）自博弈，生成 `(state, action)` 数据。
+2. ✅ 用上述格式写一个 `train_policy.py`，训练 `PolicyNet`。
+3. ✅ 保存权重为 `"gomoku_policy.pt"`。
+
+做完这些，你们的项目就可以很自然地说：
+
+> * 原版：基于 A* / minimax 的搜索型 AI；
+> * 升级版：使用深度强化学习/行为克隆训练的策略网络，
+>   在对局时由 RL 网络直接出手（方案 B）。
+
+---
+
+如果你想，我下一步可以直接帮你把：
+
+* **你这份 `ai_stdin.py` 的“改造后完整版本”写出来（不包含训练，只是集成模型的那一份）**，
+  你们只需要把模型文件丢进去就能跑。
+
+你只要说一声：“帮我改出一个完整的 ai_stdin.py 模板”，我就直接给你贴成品代码。
